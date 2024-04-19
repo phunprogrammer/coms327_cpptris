@@ -38,6 +38,7 @@ typedef struct Coord {
 } coord_t;
 
 enum blockEnum : int {
+    NULL_BLOCK = 0,
     I = 1,
     O = 2,
     L = 3,

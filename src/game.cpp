@@ -6,7 +6,9 @@ Game::Game() : board(BOARD_ROWS, std::vector<int>(BOARD_COLS, 0)) {
 }
 
 int Game::SpawnBlock() {
-    return SpawnBlock((blockEnum)(rand() % BLOCKS.size() + 1));
+    blockEnum random;
+    while((random = BLOCKS[rand() % BLOCKS.size()]) == current.type);
+    return SpawnBlock(random);
 }
 
 int Game::SpawnBlock(blockEnum block) {

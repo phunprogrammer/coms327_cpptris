@@ -4,9 +4,38 @@
 
 #define BOARD_ROWS 22
 #define BOARD_COLS 10
+#define BOARD_SPAWN_X 5
+#define BOARD_SPAWN_Y 2
+
+#define BITS 16
+
+#define BLOCK_LENGTH 4
+#define BLOCK_WIDTH 4
+#define BLOCK_CENTER_X 2
+#define BLOCK_CENTER_Y 1
 
 #ifndef GAME_H
 #define GAME_H
+
+typedef struct Coord {
+    int x;
+    int y;
+
+    bool operator==(const Coord& compare) const {
+        return this->x == compare.x && this->y == compare.y;
+    }
+
+    bool operator!=(const Coord& compare) const {
+        return this->x != compare.x || this->y != compare.y;
+    }
+
+    bool operator<(const Coord& compare) const {
+        if (this->x == compare.x) {
+            return this->y < compare.y;
+        }
+        return this->x < compare.x;
+    }
+} coord_t;
 
 enum blockEnum : int {
     I = 1,
@@ -18,49 +47,55 @@ enum blockEnum : int {
     T = 7
 };
 
+typedef struct Block {
+    blockEnum type;
+    int rotation;
+    coord_t coord;
+} block_t;
+
 const std::vector<blockEnum> BLOCKS({ I, O, L, J, S, Z, T });
 
-const std::vector<std::bitset<16>> I_ROTATIONS ({
-    std::bitset<16>{0b0000000011110000}, 
-    std::bitset<16>{0b0100010001000100}
+const std::vector<std::bitset<BITS>> I_ROTATIONS ({
+    std::bitset<BITS>{0b0000000011110000}, 
+    std::bitset<BITS>{0b0100010001000100}
 });
 
-const std::vector<std::bitset<16>> O_ROTATIONS ({
-    std::bitset<16>{0b0000011001100000}
+const std::vector<std::bitset<BITS>> O_ROTATIONS ({
+    std::bitset<BITS>{0b0000011001100000}
 });
 
-const std::vector<std::bitset<16>> L_ROTATIONS ({
-    std::bitset<16>{0b0000001011100000},
-    std::bitset<16>{0b0000010001000110},
-    std::bitset<16>{0b0000000011101000},
-    std::bitset<16>{0b0000110001000100}
+const std::vector<std::bitset<BITS>> L_ROTATIONS ({
+    std::bitset<BITS>{0b0000001011100000},
+    std::bitset<BITS>{0b0000010001000110},
+    std::bitset<BITS>{0b0000000011101000},
+    std::bitset<BITS>{0b0000110001000100}
 });
 
-const std::vector<std::bitset<16>> J_ROTATIONS ({
-    std::bitset<16>{0b0000100011100000},
-    std::bitset<16>{0b0000011001000100},
-    std::bitset<16>{0b0000000011100010},
-    std::bitset<16>{0b0000010001001100}
+const std::vector<std::bitset<BITS>> J_ROTATIONS ({
+    std::bitset<BITS>{0b0000100011100000},
+    std::bitset<BITS>{0b0000011001000100},
+    std::bitset<BITS>{0b0000000011100010},
+    std::bitset<BITS>{0b0000010001001100}
 });
 
-const std::vector<std::bitset<16>> S_ROTATIONS ({
-    std::bitset<16>{0b0000011011000000},
-    std::bitset<16>{0b0000100011000100}
+const std::vector<std::bitset<BITS>> S_ROTATIONS ({
+    std::bitset<BITS>{0b0000011011000000},
+    std::bitset<BITS>{0b0000100011000100}
 });
 
-const std::vector<std::bitset<16>> Z_ROTATIONS ({
-    std::bitset<16>{0b0000110001100000},
-    std::bitset<16>{0b0000010011001000}
+const std::vector<std::bitset<BITS>> Z_ROTATIONS ({
+    std::bitset<BITS>{0b0000110001100000},
+    std::bitset<BITS>{0b0000010011001000}
 });
 
-const std::vector<std::bitset<16>> T_ROTATIONS ({
-    std::bitset<16>{0b0000010011100000},
-    std::bitset<16>{0b0000010001100100},
-    std::bitset<16>{0b0000000011100100},
-    std::bitset<16>{0b0000010011000100}
+const std::vector<std::bitset<BITS>> T_ROTATIONS ({
+    std::bitset<BITS>{0b0000010011100000},
+    std::bitset<BITS>{0b0000010001100100},
+    std::bitset<BITS>{0b0000000011100100},
+    std::bitset<BITS>{0b0000010011000100}
 });
 
-const std::map<blockEnum, std::vector<std::bitset<16>>> ROTATIONS ({
+const std::map<blockEnum, const std::vector<std::bitset<BITS>>> ROTATIONS ({
     { blockEnum::I, I_ROTATIONS },
     { blockEnum::O, O_ROTATIONS },
     { blockEnum::L, L_ROTATIONS },
@@ -74,12 +109,21 @@ const std::map<blockEnum, std::vector<std::bitset<16>>> ROTATIONS ({
 class Game {
     private:
         std::vector<std::vector<int>> board;
-        std::pair<blockEnum, int> currentBlock;
-        
-        int score;
-        float time;
+        block_t current;
     public:
         Game();
+        int SpawnBlock();
+        int SpawnBlock(blockEnum block);
+        int DeleteBlock(block_t block);
+        int CheckBlock(block_t block);
+        int PlaceBlock(block_t block);
+
+        int Drop();
+        int RotateCW();
+        int RotateCCW();
+
+        const auto& getBoard() const { return board; } 
+        const std::bitset<BITS> getBitSet(block_t block);
 };
 
 #endif

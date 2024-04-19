@@ -1,14 +1,14 @@
 #include <game.h>
 
-Game::Game() : board(BOARD_ROWS, std::vector<int>(BOARD_COLS, 0)) {
+Game::Game() : board(BOARD_ROWS, std::vector<int>(BOARD_COLS, 0)), next(BLOCKS[rand() % BLOCKS.size()]) {
     srand(time(NULL));
     SpawnBlock();
 }
 
 int Game::SpawnBlock() {
-    blockEnum random;
-    while((random = BLOCKS[rand() % BLOCKS.size()]) == current.type);
-    return SpawnBlock(random);
+    int out = SpawnBlock(next);
+    while((next = BLOCKS[rand() % BLOCKS.size()]) == current.type);
+    return out;
 }
 
 int Game::SpawnBlock(blockEnum block) {
@@ -19,7 +19,7 @@ int Game::SpawnBlock(blockEnum block) {
 
     PlaceBlock(current);
 
-    return 1;
+    return current.type;
 }
 
 int Game::PlaceBlock(block_t block) {
@@ -83,9 +83,8 @@ int Game::Drop() {
     int out = MoveBlock(drop);
 
     if(!out) {
-        out = ClearLines(current) + 1;
-        if(!SpawnBlock())
-            out = 0;
+        int lines = ClearLines(current);
+        out = !lines ? 0 : lines + 1;
     }
 
     return out;

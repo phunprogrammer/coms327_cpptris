@@ -2,11 +2,15 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
-#include <ncurses.h>
-#include <queue>
 
 #define COLOR_ORANGE 8
 #define FRAMES 60
+
+#define BORDER 1
+#define LINES_HEIGHT 4
+#define SCORE_HEIGHT 4
+#define NEXT_HEIGHT 7
+#define LEVELS_HEIGHT 4
 
 GameManager::GameManager() : lines(0), score(0), time(0) {
     setlocale(LC_ALL, "");
@@ -23,6 +27,9 @@ GameManager::GameManager() : lines(0), score(0), time(0) {
         init_color(COLOR_ORANGE, 1000, 500, 0);
         init_pair(blockEnum::L, COLOR_ORANGE, COLOR_BLACK);
     }
+
+    for(int i = 0; i < (int)BLOCKS.size(); i++)
+        count[BLOCKS[i]] = 0;
 }
 
 GameManager::~GameManager() {
@@ -45,7 +52,6 @@ int GameManager::StartGame(int level) {
     PrintBoard();
     startLevel = this->level = level;
 
-    std::queue<int> inputs;
     auto startTime = std::chrono::steady_clock::now();
 
     while(1) {
@@ -60,10 +66,10 @@ int GameManager::StartGame(int level) {
         if (elapsedTime >= GetSpeed()) {
             startTime = currentTime;
 
-            if(!IncrementLines(game.Drop()))
+            if(!IncrementLines(game.Drop()) && !IncrementCount((blockEnum)game.SpawnBlock()))
                 break;
 
-            PrintBoard();
+            UpdateScreen();
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1000 / FRAMES));
@@ -73,6 +79,10 @@ int GameManager::StartGame(int level) {
 }
 
 int GameManager::PrintBoard() {
+    delwin(gameWin);
+    gameWin = newwin(BOARD_ROWS - BOARD_SPAWN_Y + 2, BOARD_COLS * 2 + 2, BORDER, 29);
+    box(gameWin, 0, 0);
+
     for(int y = BOARD_SPAWN_Y; y < BOARD_ROWS; y++)
         for(int x = 0; x < BOARD_COLS; x++) {
             int color;
@@ -82,12 +92,12 @@ int GameManager::PrintBoard() {
             else
                 color = game.getBoard()[y][x];
 
-            attron(COLOR_PAIR(color));
-            mvprintw(y, x * 2, "██");
-            attroff(COLOR_PAIR(color));
+            wattron(gameWin, COLOR_PAIR(color));
+            mvwprintw(gameWin, y - 1, x * 2 + 1, "██");
+            wattroff(gameWin, COLOR_PAIR(color));
         }
 
-    refresh();
+    wrefresh(gameWin);
 
     return 1;
 }
@@ -109,7 +119,7 @@ int GameManager::HandleInput(int input) {
             out = game.MoveRight();
             break;
         case KEY_DOWN:
-            if(!IncrementLines(game.Drop()))
+            if(!IncrementLines(game.Drop()) && !IncrementCount((blockEnum)game.SpawnBlock()))
                 return 2;
             break;
         default:
@@ -117,7 +127,7 @@ int GameManager::HandleInput(int input) {
     }
 
     if(out)
-        PrintBoard();
+        UpdateScreen();
 
     return 1;
 }
@@ -168,4 +178,93 @@ int GameManager::IncrementLines(int lines) {
     }
 
     return lines;
+}
+
+int GameManager::UpdateScreen() {
+    box(menuWin, 0, 0);
+    wrefresh(menuWin);
+    PrintBoard();
+    PrintLines();
+    PrintScores();
+    PrintNext();
+    PrintLevel();
+
+    return 1;
+}
+
+int GameManager::PrintLines() {
+    delwin(lineWin);
+    lineWin = newwin(LINES_HEIGHT, BOARD_COLS + 1, BORDER, 51);
+    box(lineWin, 0, 0);
+
+    mvwprintw(lineWin, 1, 2, "LINES:");
+    mvwprintw(lineWin, 2, 2, "%02d", lines);
+
+    wrefresh(lineWin);
+    return 1;
+}
+
+int GameManager::PrintScores() {
+    delwin(scoreWin);
+    scoreWin = newwin(SCORE_HEIGHT, BOARD_COLS + 1, BORDER + LINES_HEIGHT, 51);
+    box(scoreWin, 0, 0);
+
+    mvwprintw(scoreWin, 1, 2, "SCORE:");
+    mvwprintw(scoreWin, 2, 2, "%07d", score);
+
+    wrefresh(scoreWin);
+    return 1;
+}
+
+int GameManager::PrintNext() {
+    delwin(nextWin);
+    nextWin = newwin(NEXT_HEIGHT, BOARD_COLS + 1, BORDER + LINES_HEIGHT + SCORE_HEIGHT, 51);
+    box(nextWin, 0, 0);
+
+    const auto blockBits = game.getBitSet({game.getNext(), 0, {0, 0}});
+
+    mvwprintw(nextWin, 1, 2, "NEXT:");
+
+    for(int y = 0; y < BLOCK_WIDTH; y++)
+        for(int x = 0; x < BLOCK_LENGTH; x++) {
+            int color = 0;
+            if(!blockBits[y * BLOCK_LENGTH + x])
+                color = BLOCKS.size() + 1;
+            else
+                color = game.getNext();
+
+            wattron(nextWin, COLOR_PAIR(color));
+            mvwprintw(nextWin, y + 2, x * 2 + 1, "██");
+            wattroff(nextWin, COLOR_PAIR(color));
+        }
+
+    wrefresh(nextWin);
+    return 1;
+}
+
+int GameManager::PrintLevel() {
+    delwin(levelWin);
+    levelWin = newwin(LEVELS_HEIGHT, BOARD_COLS + 1, BORDER + LINES_HEIGHT + SCORE_HEIGHT + NEXT_HEIGHT, 51);
+    box(levelWin, 0, 0);
+
+    mvwprintw(levelWin, 1, 2, "LEVEL:");
+    mvwprintw(levelWin, 2, 2, "%02d", level);
+
+    wrefresh(levelWin);
+    return 1;
+}
+
+int GameManager::SelectLevel() {
+    delwin(menuWin);
+    menuWin = newwin(24, 80, 0,0);
+    box(menuWin, 0, 0);
+
+    wrefresh(menuWin);
+    return 1;
+}
+
+int GameManager::IncrementCount(blockEnum block) {
+    if(block == NULL_BLOCK) return 0;
+    count[block]++;
+    return block;
 }

@@ -3,7 +3,7 @@
 int main() {
     GameManager manager = GameManager();
 
-    manager.StartGame(0);
+    manager.StartGame(manager.SelectLevel());
 
     return 0;
 }

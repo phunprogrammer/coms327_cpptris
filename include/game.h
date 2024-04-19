@@ -111,6 +111,7 @@ class Game {
     private:
         std::vector<std::vector<int>> board;
         block_t current;
+        blockEnum next;
         int MoveBlock(block_t block);
 
     public:
@@ -132,6 +133,7 @@ class Game {
 
         const auto& getBoard() const { return board; } 
         const std::bitset<BITS> getBitSet(block_t block);
+        const blockEnum& getNext() const { return next; }
 };
 
 #endif

@@ -4,6 +4,8 @@
 #include <thread>
 #include <ncurses.h>
 
+#define COLOR_ORANGE 8
+
 GameManager::GameManager() : score(0), time(0) {
     setlocale(LC_ALL, "");
     initscr();
@@ -14,6 +16,11 @@ GameManager::GameManager() : score(0), time(0) {
     keypad(stdscr, TRUE);
     start_color();
     InitColors();
+
+    if(can_change_color()) {
+        init_color(COLOR_ORANGE, 1000, 500, 0);
+        init_pair(blockEnum::L, COLOR_ORANGE, COLOR_BLACK);
+    }
 }
 
 GameManager::~GameManager() {

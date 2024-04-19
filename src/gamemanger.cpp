@@ -49,7 +49,8 @@ void GameManager::InitColors() {
 
 int GameManager::StartGame(int level) {
     game = Game();
-    PrintBoard();
+    IncrementCount((blockEnum)game.SpawnBlock());
+    UpdateScreen();
     startLevel = this->level = level;
 
     auto startTime = std::chrono::steady_clock::now();
@@ -177,7 +178,7 @@ int GameManager::IncrementLines(int lines) {
             break;
     }
 
-    return lines;
+    return lines == 1 ? 1 : 0;
 }
 
 int GameManager::UpdateScreen() {
@@ -188,6 +189,7 @@ int GameManager::UpdateScreen() {
     PrintScores();
     PrintNext();
     PrintLevel();
+    PrintCount();
 
     return 1;
 }
@@ -260,11 +262,39 @@ int GameManager::SelectLevel() {
     box(menuWin, 0, 0);
 
     wrefresh(menuWin);
-    return 1;
+    return 10;
 }
 
 int GameManager::IncrementCount(blockEnum block) {
     if(block == NULL_BLOCK) return 0;
     count[block]++;
     return block;
+}
+
+int GameManager::PrintCount() {
+    delwin(countWin);
+    countWin = newwin(22, BOARD_COLS + 5, BORDER, 29 - (BOARD_COLS + 5));
+    box(countWin, 0, 0);
+
+    for(int i = 0; i < (int)BLOCKS.size(); i++) {
+        const auto blockBits = game.getBitSet({BLOCKS[i], 0, {0, 0}});
+
+        for(int y = 1; y < BLOCK_WIDTH - 1; y++)
+            for(int x = 0; x < BLOCK_LENGTH; x++) {
+                int color = 0;
+                if(!blockBits[y * BLOCK_LENGTH + x])
+                    color = BLOCKS.size() + 1;
+                else
+                    color = BLOCKS[i];
+
+                wattron(countWin, COLOR_PAIR(color));
+                mvwprintw(countWin, 1 + (y - 1) + i * 3, 1 + x * 2, "██");
+                wattroff(countWin, COLOR_PAIR(color));
+            }
+
+        mvwprintw(countWin, i * 3 + 1, 11, "%03d", count.at(BLOCKS[i]));
+    }
+
+    wrefresh(countWin);
+    return 1;
 }

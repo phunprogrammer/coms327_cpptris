@@ -20,6 +20,7 @@ class GameManager {
         WINDOW* scoreWin;
         WINDOW* nextWin;
         WINDOW* levelWin;
+        WINDOW* countWin;
     public:
         GameManager();
         ~GameManager();
@@ -32,6 +33,7 @@ class GameManager {
         int PrintScores();
         int PrintNext();
         int PrintLevel();
+        int PrintCount();
 
         int SelectLevel();
 

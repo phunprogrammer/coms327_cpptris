@@ -2,7 +2,6 @@
 
 Game::Game() : board(BOARD_ROWS, std::vector<int>(BOARD_COLS, 0)), next(BLOCKS[rand() % BLOCKS.size()]) {
     srand(time(NULL));
-    SpawnBlock();
 }
 
 int Game::SpawnBlock() {

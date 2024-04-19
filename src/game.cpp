@@ -39,9 +39,7 @@ int Game::CheckBlock(block_t block) {
     for(int y = 0; y < BLOCK_WIDTH; y++) {
         for(int x = 0; x < BLOCK_LENGTH; x++) {
             if(start.x + x < 0 || start.x + x >= BOARD_COLS || start.y + y < 0 || start.y + y >= BOARD_ROWS) {
-                if(blockBits[y * BLOCK_LENGTH + x]) {
-                    return 0;
-                }
+                if(blockBits[y * BLOCK_LENGTH + x]) return 0;
                 else continue;
             }
         
@@ -82,8 +80,10 @@ int Game::Drop() {
 
     int out = MoveBlock(drop);
 
-    if(!out)
+    if(!out) {
         ClearLines(current);
+        out = SpawnBlock();
+    }
 
     return out;
 }
@@ -135,8 +135,10 @@ int Game::ClearLine(int line) {
     bool filled = true;
 
     for(int x = 0; x < BOARD_COLS; x++)
-        if(!board[line][x])
+        if(!board[line][x]) {
             filled = false;
+            break;
+        }
 
     if(!filled) return 0;
 
@@ -152,11 +154,12 @@ int Game::ClearLines(block_t block) {
     coord_t start = { block.coord.x - BLOCK_CENTER_X, block.coord.y - BLOCK_CENTER_Y };
     const auto blockBits = getBitSet(block);
     bool cleared = false;
+    int line;
 
     for(int y = 0; y < BLOCK_WIDTH; y++)
         for(int x = 0; x < BLOCK_LENGTH; x++) 
             if(blockBits[y * BLOCK_LENGTH + x]) {
-                if(ClearLine(start.y + y)) cleared = true;
+                if((line = ClearLine(start.y + y))) cleared = true;
                 break;
             }
 

@@ -10,11 +10,12 @@ class GameManager {
         float time;
     public:
         GameManager();
+        ~GameManager();
+        
+        void InitColors();
         int StartGame();
         int PrintBoard();
         int HandleInput(int input);
-
-        Game& getGame() { return game; }
 };
 
 #endif

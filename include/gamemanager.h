@@ -12,7 +12,7 @@ class GameManager {
         GameManager();
         int StartGame();
         int PrintBoard();
-        int HandleInput(char input);
+        int HandleInput(int input);
 
         Game& getGame() { return game; }
 };

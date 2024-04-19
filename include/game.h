@@ -110,6 +110,8 @@ class Game {
     private:
         std::vector<std::vector<int>> board;
         block_t current;
+        int MoveBlock(block_t block);
+
     public:
         Game();
         int SpawnBlock();
@@ -119,6 +121,8 @@ class Game {
         int PlaceBlock(block_t block);
 
         int Drop();
+        int MoveLeft();
+        int MoveRight();
         int RotateCW();
         int RotateCCW();
 

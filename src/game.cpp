@@ -80,7 +80,12 @@ int Game::Drop() {
     block_t drop = current;
     drop.coord.y++;
 
-    return MoveBlock(drop);
+    int out = MoveBlock(drop);
+
+    if(!out)
+        ClearLines(current);
+
+    return out;
 }
 
 int Game::MoveLeft() {
@@ -122,4 +127,38 @@ int Game::MoveBlock(block_t block) {
     PlaceBlock(block);
     current = block;
     return 1;
+}
+
+int Game::ClearLine(int line) {
+    if(line < 0 || line >= BOARD_ROWS) return 0;
+
+    bool filled = true;
+
+    for(int x = 0; x < BOARD_COLS; x++)
+        if(!board[line][x])
+            filled = false;
+
+    if(!filled) return 0;
+
+    for(int x = 0; x < BOARD_COLS; x++) {
+        for(int currentLine = line; currentLine > 0; currentLine--)
+            board[currentLine][x] = board[currentLine - 1][x];
+    }
+
+    return 1;
+}
+
+int Game::ClearLines(block_t block) {
+    coord_t start = { block.coord.x - BLOCK_CENTER_X, block.coord.y - BLOCK_CENTER_Y };
+    const auto blockBits = getBitSet(block);
+    bool cleared = false;
+
+    for(int y = 0; y < BLOCK_WIDTH; y++)
+        for(int x = 0; x < BLOCK_LENGTH; x++) 
+            if(blockBits[y * BLOCK_LENGTH + x]) {
+                if(ClearLine(start.y + y)) cleared = true;
+                break;
+            }
+
+    return cleared;
 }

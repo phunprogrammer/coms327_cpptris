@@ -42,7 +42,7 @@ int GameManager::StartGame() {
 }
 
 int GameManager::PrintBoard() {
-    for(int y = 0; y < BOARD_ROWS; y++)
+    for(int y = BOARD_SPAWN_Y; y < BOARD_ROWS; y++)
         for(int x = 0; x < BOARD_COLS; x++)
             mvprintw(y, x, "%d", game.getBoard()[y][x]);
 

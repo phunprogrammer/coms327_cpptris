@@ -126,6 +126,9 @@ class Game {
         int RotateCW();
         int RotateCCW();
 
+        int ClearLine(int line);
+        int ClearLines(block_t block);
+
         const auto& getBoard() const { return board; } 
         const std::bitset<BITS> getBitSet(block_t block);
 };

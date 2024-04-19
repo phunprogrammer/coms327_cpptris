@@ -261,8 +261,58 @@ int GameManager::SelectLevel() {
     menuWin = newwin(24, 80, 0,0);
     box(menuWin, 0, 0);
 
-    wrefresh(menuWin);
-    return 10;
+    std::vector<std::vector<int>> levels;
+
+    for(int y = 0; y < 3; y++) {
+        levels.push_back(std::vector<int>());
+        for(int x = 0; x < 6; x++) {
+            levels[y].push_back(y * 6 + x + 1);
+        }
+    }
+
+    coord_t selection = { 0, 0 };
+
+    int width = 80;
+    int input = 0;
+
+    do {
+        wclear(menuWin);
+        box(menuWin, 0, 0);
+
+
+
+        switch(input) {
+            case KEY_RIGHT:
+                selection.x + 1 < (int)levels[selection.y].size() ? selection.x++ : selection.x;
+                break;
+            case KEY_LEFT:
+                selection.x - 1 >= 0 ? selection.x-- : selection.x;
+                break;
+            case KEY_DOWN:
+                selection.y + 1 < (int)levels.size() && selection.x < (int)levels[selection.y + 1].size() ? selection.y++ : selection.y;
+                break;
+            case KEY_UP:
+                selection.y - 1 >= 0 ? selection.y-- : selection.y;
+                break;
+            case KEY_BACKSPACE:
+                return -1;
+        }
+
+        for(int i = 0; i < (int)levels.size(); i++) {
+            for(int j = 0; j < (int)levels[i].size(); j++) {
+                if(selection.y == i && selection.x == j) {
+                    mvwprintw(menuWin, 5 + (i + 1) * 3, width * 0.24 + j * 8 - 1, ">%02d<", levels[i][j]);
+                }
+                else 
+                    mvwprintw(menuWin, 5 + (i + 1) * 3, width * 0.24 + j * 8, "%02d", levels[i][j]);
+            }
+        }
+
+        wrefresh(menuWin);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000 / FRAMES));
+    } while((input = getch()) != 10);
+
+    return levels[selection.y][selection.x];
 }
 
 int GameManager::IncrementCount(blockEnum block) {

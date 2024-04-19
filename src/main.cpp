@@ -2,8 +2,9 @@
 
 int main() {
     GameManager manager = GameManager();
-
-    manager.StartGame(manager.SelectLevel());
+    int level;
+    
+    while((level = manager.SelectLevel()) != -1) manager.StartGame(level);
 
     return 0;
 }

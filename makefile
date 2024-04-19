@@ -6,7 +6,7 @@ OBJ_DIR := $(ROOT_DIR)/obj
 INC_DIRS := $(shell find $(INC_DIR) -type d)
 SRC_DIRS := $(shell find $(SRC_DIR) -type d)
 CC := g++
-LINKS := -lm -lncursesw
+LINKS := -lm -lncursesw -std=c++11
 CFLAGS := $(addprefix -I, $(INC_DIRS)) -Wall -Wextra -g #-Werror
 DEPS := $(wildcard $(addsuffix /*.h, $(INC_DIRS)))
 SRCS := $(wildcard $(addsuffix /*.cpp, $(SRC_DIRS)))

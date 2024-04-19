@@ -83,8 +83,9 @@ int Game::Drop() {
     int out = MoveBlock(drop);
 
     if(!out) {
-        ClearLines(current);
-        out = SpawnBlock();
+        out = ClearLines(current) + 1;
+        if(!SpawnBlock())
+            out = 0;
     }
 
     return out;
@@ -155,15 +156,14 @@ int Game::ClearLine(int line) {
 int Game::ClearLines(block_t block) {
     coord_t start = { block.coord.x - BLOCK_CENTER_X, block.coord.y - BLOCK_CENTER_Y };
     const auto blockBits = getBitSet(block);
-    bool cleared = false;
-    int line;
+    int lines = 0;
 
     for(int y = 0; y < BLOCK_WIDTH; y++)
         for(int x = 0; x < BLOCK_LENGTH; x++) 
             if(blockBits[y * BLOCK_LENGTH + x]) {
-                if((line = ClearLine(start.y + y))) cleared = true;
+                lines += ClearLine(start.y + y);
                 break;
             }
 
-    return cleared;
+    return lines;
 }

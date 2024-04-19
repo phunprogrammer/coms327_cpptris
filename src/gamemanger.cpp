@@ -3,10 +3,12 @@
 #include <chrono>
 #include <thread>
 #include <ncurses.h>
+#include <queue>
 
 #define COLOR_ORANGE 8
+#define FRAMES 60
 
-GameManager::GameManager() : score(0), time(0) {
+GameManager::GameManager() : lines(0), score(0), time(0) {
     setlocale(LC_ALL, "");
     initscr();
     cbreak();
@@ -38,31 +40,33 @@ void GameManager::InitColors() {
     init_pair(BLOCKS.size() + 1, COLOR_BLACK, COLOR_BLACK);
 }
 
-int GameManager::StartGame() {
+int GameManager::StartGame(int level) {
     game = Game();
     PrintBoard();
+    startLevel = this->level = level;
 
+    std::queue<int> inputs;
     auto startTime = std::chrono::steady_clock::now();
 
     while(1) {
-        if(HandleInput(getch()) == 2)
-            break;
-
-        flushinp();
-
         auto currentTime = std::chrono::steady_clock::now();
         auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
 
-        if (elapsedTime >= 50) {
+        int input = HandleInput(getch());
+
+        if(input == 2) break;
+        else if(input) flushinp();
+
+        if (elapsedTime >= GetSpeed()) {
             startTime = currentTime;
 
-            if(!game.Drop())
+            if(!IncrementLines(game.Drop()))
                 break;
 
             PrintBoard();
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000 / FRAMES));
     }
 
     return 1;
@@ -105,7 +109,7 @@ int GameManager::HandleInput(int input) {
             out = game.MoveRight();
             break;
         case KEY_DOWN:
-            if(!game.Drop())
+            if(!IncrementLines(game.Drop()))
                 return 2;
             break;
         default:
@@ -116,4 +120,52 @@ int GameManager::HandleInput(int input) {
         PrintBoard();
 
     return 1;
+}
+
+int GameManager::GetSpeed() {
+    float speed;
+
+    if(level == 9)
+        speed = 6;
+    else if(level >= 10 && level <= 12)
+        speed = 5;
+    else if(level >= 13 && level <= 15)
+        speed = 4;
+    else if(level >= 16 && level <= 18)
+        speed = 3;
+    else if(level >= 19 && level <= 28)
+        speed = 2;
+    else if(level >= 29)
+        speed = 1;
+    else
+        speed = (FRAMES * 0.75) - level * (FRAMES / 12.0);
+
+    return 1000 * (speed / FRAMES);
+}
+
+int GameManager::IncrementLines(int lines) {
+    if(!lines) return 0;
+    this->lines += lines - 1;
+
+    if(this->lines >= (level * 10 + 10))
+        level++;
+
+    switch(lines) {
+        case 2:
+            score += 40 * (level + 1);
+            break;
+        case 3:
+            score += 100 * (level + 1);
+            break;
+        case 4:
+            score += 300 * (level + 1);
+            break;
+        case 5:
+            score += 1200 * (level + 1);
+            break;
+        default:
+            break;
+    }
+
+    return lines;
 }

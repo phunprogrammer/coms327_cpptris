@@ -30,7 +30,8 @@ class Leaderboard {
         ~Leaderboard();
         void Print();
 
-        int insert(std::string name, int score);
+        int Insert(std::string name, int score);
+        int Save();
         const std::multiset<Entry<std::string>>& getEntries() const { return entries; }
 };
 

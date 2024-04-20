@@ -14,7 +14,7 @@
 #define NEXT_HEIGHT 7
 #define LEVELS_HEIGHT 4
 
-GameManager::GameManager() : lines(0), score(0), board() {
+GameManager::GameManager() : lines(0), score(0) {
     setlocale(LC_ALL, "");
     initscr();
     cbreak();
@@ -84,6 +84,8 @@ int GameManager::StartGame(int level) {
 
         PrintTime();
     }
+
+    PrintEnd();
 
     return 1;
 }
@@ -421,10 +423,72 @@ int GameManager::PrintLeaderBoard() {
 
     int i = 1;
     for(auto& entry : board.getEntries()) {
-        mvwprintw(boardWin, 1 + i, 1, " %d. %s      %07d", i, entry.getData().c_str(), entry.getPriority());
+        mvwprintw(boardWin, 1 + i, 1, " %d. %3s      %07d", i, entry.getData().c_str(), entry.getPriority());
         i++;
     }
 
     wrefresh(boardWin);
+    return 1;
+}
+
+int GameManager::PrintEnd() {
+    int width = 22;
+    int height = 5;
+
+    nodelay(stdscr, FALSE);
+    endWin = newwin(height, width, 12 - (height / 2), 40 - (width / 2));
+    box(endWin, 0, 0);
+
+    if(board.getEntries().size() > 0 && board.getEntries().size() >= LEADERBOARD_SIZE && score <= (*--board.getEntries().end()).getPriority()) {
+        mvwprintw(endWin, 2, 1, "BETTER LUCK NEXT TIME!");
+        wrefresh(endWin);
+        while(getch() != 10);
+        nodelay(stdscr, TRUE);
+        return 0;
+    }
+
+    std::string name;
+    int input;
+    mvwprintw(endWin, 2, 1, "YOU'RE ON THE BOARD!");
+    wrefresh(endWin);
+    while(getch() != 10);
+
+    curs_set(1);
+
+    mvwprintw(endWin, 2, 1, "                    ");
+    mvwprintw(endWin, 2, 6, "NAME: ");
+    wrefresh(endWin);
+
+    int start = 12;
+    int cursor = start;
+
+    while((input = getch()) != 10 || (int)name.size() == 0) {
+        switch(input){
+            case KEY_BACKSPACE:
+                if (!name.empty()) {
+                    name.erase(name.end() - 1);
+                    cursor--;
+                }
+                break;
+            default:
+                if(std::isalpha(input) && (int)name.size() < 3) {
+                    name += std::toupper(input);
+                    cursor++;
+                }
+                break;
+        }
+
+        mvwprintw(endWin, 2, start, "   ");
+        mvwprintw(endWin, 2, start, "%s", name.c_str());
+        wmove(endWin, 2, cursor);
+        wrefresh(endWin);
+    }
+    board.Insert(name, score);
+    board.Save();
+
+    delwin(endWin);
+    nodelay(stdscr, TRUE);
+    noecho();
+    curs_set(0);
     return 1;
 }

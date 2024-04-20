@@ -31,6 +31,7 @@ class Leaderboard {
         void Print();
 
         int insert(std::string name, int score);
+        const std::multiset<Entry<std::string>>& getEntries() const { return entries; }
 };
 
 #endif

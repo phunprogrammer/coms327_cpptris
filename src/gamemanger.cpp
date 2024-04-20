@@ -14,7 +14,7 @@
 #define NEXT_HEIGHT 7
 #define LEVELS_HEIGHT 4
 
-GameManager::GameManager() : lines(0), score(0) {
+GameManager::GameManager() : lines(0), score(0), board() {
     setlocale(LC_ALL, "");
     initscr();
     cbreak();
@@ -283,7 +283,8 @@ int GameManager::SelectLevel() {
 
     box(menuWin, 0, 0);
     PrintLogo();
-    mvwprintw(menuWin, 9, 33, "Select a level:");
+    PrintLeaderBoard();
+    mvwprintw(menuWin, 8, 33, "Select a level:");
     wrefresh(menuWin);
 
     do {
@@ -310,10 +311,10 @@ int GameManager::SelectLevel() {
         for(int i = 0; i < (int)levels.size(); i++) {
             for(int j = 0; j < (int)levels[i].size(); j++) {
                 if(selection.y == i && selection.x == j) {
-                    mvwprintw(menuWin, 9 + (i + 1), width * 0.24 + j * 8 - 1, ">%02d<", levels[i][j]);
+                    mvwprintw(menuWin, 8 + (i + 1), width * 0.24 + j * 8 - 1, ">%02d<", levels[i][j]);
                 }
                 else 
-                    mvwprintw(menuWin, 9 + (i + 1), width * 0.24 + j * 8 - 1, " %02d ", levels[i][j]);
+                    mvwprintw(menuWin, 8 + (i + 1), width * 0.24 + j * 8 - 1, " %02d ", levels[i][j]);
             }
         }
 
@@ -409,5 +410,21 @@ int GameManager::PrintLogo() {
 
     logo.close();
     wrefresh(menuWin);
+    return 1;
+}
+
+int GameManager::PrintLeaderBoard() {
+    delwin(boardWin);
+    boardWin = newwin(11, 24, 12, 28);
+    box(boardWin, 0, 0);
+    mvwprintw(boardWin, 1, 1, "    NAME     SCORE");
+
+    int i = 1;
+    for(auto& entry : board.getEntries()) {
+        mvwprintw(boardWin, 1 + i, 1, " %d. %s      %07d", i, entry.getData().c_str(), entry.getPriority());
+        i++;
+    }
+
+    wrefresh(boardWin);
     return 1;
 }

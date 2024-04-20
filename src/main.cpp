@@ -1,5 +1,4 @@
 #include <gamemanager.h>
-#include <leaderboard.h>
 
 int main() {
     GameManager manager = GameManager();

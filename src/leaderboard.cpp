@@ -25,7 +25,16 @@ Leaderboard::Leaderboard() {
     board.close();
 }
 
-Leaderboard::~Leaderboard() {}
+Leaderboard::~Leaderboard() {
+    std::ofstream board("./data/leaderboard.csv");
+
+    if(!board.is_open()) return;
+
+    for(const auto& entry : entries)
+        board << entry.getData() << "," << entry.getPriority() << std::endl;
+
+    board.close();
+}
 
 int Leaderboard::insert(std::string name, int score) {
     if(entries.size() < LEADERBOARD_SIZE){
@@ -45,3 +54,4 @@ void Leaderboard::Print() {
     for(auto& entry : entries)
         std::cout << entry.getData() << "," << entry.getPriority() << std::endl;
 }
+

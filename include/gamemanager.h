@@ -1,4 +1,5 @@
 #include <game.h>
+#include <leaderboard.h>
 #include <ncurses.h>
 #include <chrono>
 
@@ -13,8 +14,11 @@ class GameManager {
         int level;
         std::chrono::_V2::system_clock::time_point time;
         std::map<blockEnum, int> count;
+        Leaderboard board;
 
         WINDOW* menuWin;
+        WINDOW* boardWin;
+
         WINDOW* gameWin;
         WINDOW* lineWin;
         WINDOW* scoreWin;
@@ -35,6 +39,7 @@ class GameManager {
         int PrintNext();
         int PrintLevel();
         int PrintCount();
+        int PrintLeaderBoard();
 
         int InitTimeWin();
         int PrintTime();

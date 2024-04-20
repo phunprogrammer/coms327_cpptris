@@ -4,7 +4,6 @@
 *.o
 game
 *.bat
-*.txt
 *.png
 CHANGELOG
 *.jar

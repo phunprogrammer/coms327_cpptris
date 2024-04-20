@@ -440,7 +440,7 @@ int GameManager::PrintEnd() {
     box(endWin, 0, 0);
 
     if(board.getEntries().size() > 0 && board.getEntries().size() >= LEADERBOARD_SIZE && score <= (*--board.getEntries().end()).getPriority()) {
-        mvwprintw(endWin, 2, 1, "BETTER LUCK NEXT TIME!");
+        mvwprintw(endWin, 2, 7, "NICE TRY!");
         wrefresh(endWin);
         while(getch() != 10);
         nodelay(stdscr, TRUE);

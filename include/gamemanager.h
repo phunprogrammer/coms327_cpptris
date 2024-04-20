@@ -10,7 +10,6 @@ class GameManager {
         Game game;
         int lines;
         int score;
-        int startLevel;
         int level;
         std::chrono::_V2::system_clock::time_point time;
         std::map<blockEnum, int> count;
@@ -39,8 +38,10 @@ class GameManager {
 
         int InitTimeWin();
         int PrintTime();
+        int InitGame(int level);
 
         int SelectLevel();
+        int PrintLogo();
 
         int UpdateScreen();
         int HandleInput(int inputs);

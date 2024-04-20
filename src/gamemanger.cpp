@@ -169,7 +169,7 @@ int GameManager::IncrementLines(int lines) {
     if(!lines) return 0;
     this->lines += lines - 1;
 
-    if(this->lines >= (level * 10 + 10))
+    if(this->lines >= (level * 10 + 10) && level < 29)
         level++;
 
     switch(lines) {
@@ -273,14 +273,13 @@ int GameManager::SelectLevel() {
 
     for(int y = 0; y < 3; y++) {
         levels.push_back(std::vector<int>());
-        for(int x = 0; x < 6; x++) {
-            levels[y].push_back(y * 6 + x);
+        for(int x = 0; x < 10; x++) {
+            levels[y].push_back(y * 10 + x);
         }
     }
 
     coord_t selection = { 0, 0 };
 
-    int width = 80;
     int input = 0;
 
     box(menuWin, 0, 0);
@@ -313,10 +312,10 @@ int GameManager::SelectLevel() {
         for(int i = 0; i < (int)levels.size(); i++) {
             for(int j = 0; j < (int)levels[i].size(); j++) {
                 if(selection.y == i && selection.x == j) {
-                    mvwprintw(menuWin, 8 + (i + 1), width * 0.24 + j * 8 - 1, ">%02d<", levels[i][j]);
+                    mvwprintw(menuWin, 8 + (i + 1), j * 6 + 11, ">%02d<", levels[i][j]);
                 }
                 else 
-                    mvwprintw(menuWin, 8 + (i + 1), width * 0.24 + j * 8 - 1, " %02d ", levels[i][j]);
+                    mvwprintw(menuWin, 8 + (i + 1), j * 6 + 11, " %02d ", levels[i][j]);
             }
         }
 

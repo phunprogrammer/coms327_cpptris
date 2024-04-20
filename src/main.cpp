@@ -1,6 +1,16 @@
 #include <gamemanager.h>
+#include <ncurses.h>
+#include <signal.h>
+
+void do_resize(int num) {
+    if(num) {}
+    
+    refresh();
+}
 
 int main() {
+    signal(SIGWINCH, do_resize);
+
     GameManager manager = GameManager();
     int level;
     

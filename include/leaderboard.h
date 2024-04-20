@@ -4,6 +4,8 @@
 #ifndef LEADERBOARD_H
 #define LEADERBOARD_H
 
+#define LEADERBOARD_SIZE 8
+
 template<typename T>
 class Entry {
     private:
@@ -25,6 +27,10 @@ class Leaderboard {
         std::multiset<Entry<std::string>> entries;
     public:
         Leaderboard();
+        ~Leaderboard();
+        void Print();
+
+        int insert(std::string name, int score);
 };
 
 #endif

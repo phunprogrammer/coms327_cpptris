@@ -4,7 +4,8 @@
 #include <thread>
 
 #define COLOR_ORANGE 8
-#define FRAMES 60
+#define FRAMES 10.0
+#define MILLIS_PER_FRAME (1000.0 / FRAMES)
 
 #define BORDER 1
 #define LINES_HEIGHT 4
@@ -12,7 +13,7 @@
 #define NEXT_HEIGHT 7
 #define LEVELS_HEIGHT 4
 
-GameManager::GameManager() : lines(0), score(0), time(0) {
+GameManager::GameManager() : lines(0), score(0) {
     setlocale(LC_ALL, "");
     initscr();
     cbreak();
@@ -51,29 +52,37 @@ int GameManager::StartGame(int level) {
     game = Game();
     IncrementCount((blockEnum)game.SpawnBlock());
     UpdateScreen();
+    InitTimeWin();
     startLevel = this->level = level;
 
-    auto startTime = std::chrono::steady_clock::now();
+    time = std::chrono::high_resolution_clock::now();
+    auto newTime = std::chrono::high_resolution_clock::now();
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    double accumulator = 0.0;
 
     while(1) {
-        auto currentTime = std::chrono::steady_clock::now();
-        auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
+        newTime = std::chrono::high_resolution_clock::now();
+        double deltaTime = std::chrono::duration_cast<std::chrono::milliseconds>(newTime - currentTime).count();
+        currentTime = newTime;
+        accumulator += deltaTime;
+
+        if (deltaTime < MILLIS_PER_FRAME) std::this_thread::sleep_for(std::chrono::milliseconds((int)(MILLIS_PER_FRAME - deltaTime)));
 
         int input = HandleInput(getch());
 
         if(input == 2) break;
         else if(input) flushinp();
 
-        if (elapsedTime >= GetSpeed()) {
-            startTime = currentTime;
-
+        if (accumulator >= GetSpeed()) {
             if(!IncrementLines(game.Drop()) && !IncrementCount((blockEnum)game.SpawnBlock()))
                 break;
 
             UpdateScreen();
+
+            accumulator -= GetSpeed();
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000 / FRAMES));
+        PrintTime();
     }
 
     return 1;
@@ -149,9 +158,9 @@ int GameManager::GetSpeed() {
     else if(level >= 29)
         speed = 1;
     else
-        speed = (FRAMES * 0.75) - level * (FRAMES / 12.0);
+        speed = 48 - level * 5;
 
-    return 1000 * (speed / FRAMES);
+    return 1000 * (speed / 60);
 }
 
 int GameManager::IncrementLines(int lines) {
@@ -182,8 +191,6 @@ int GameManager::IncrementLines(int lines) {
 }
 
 int GameManager::UpdateScreen() {
-    box(menuWin, 0, 0);
-    wrefresh(menuWin);
     PrintBoard();
     PrintLines();
     PrintScores();
@@ -259,14 +266,13 @@ int GameManager::PrintLevel() {
 int GameManager::SelectLevel() {
     delwin(menuWin);
     menuWin = newwin(24, 80, 0,0);
-    box(menuWin, 0, 0);
 
     std::vector<std::vector<int>> levels;
 
     for(int y = 0; y < 3; y++) {
         levels.push_back(std::vector<int>());
         for(int x = 0; x < 6; x++) {
-            levels[y].push_back(y * 6 + x + 1);
+            levels[y].push_back(y * 6 + x);
         }
     }
 
@@ -275,12 +281,10 @@ int GameManager::SelectLevel() {
     int width = 80;
     int input = 0;
 
+    box(menuWin, 0, 0);
+    wrefresh(menuWin);
+
     do {
-        wclear(menuWin);
-        box(menuWin, 0, 0);
-
-
-
         switch(input) {
             case KEY_RIGHT:
                 selection.x + 1 < (int)levels[selection.y].size() ? selection.x++ : selection.x;
@@ -304,13 +308,17 @@ int GameManager::SelectLevel() {
                     mvwprintw(menuWin, 5 + (i + 1) * 3, width * 0.24 + j * 8 - 1, ">%02d<", levels[i][j]);
                 }
                 else 
-                    mvwprintw(menuWin, 5 + (i + 1) * 3, width * 0.24 + j * 8, "%02d", levels[i][j]);
+                    mvwprintw(menuWin, 5 + (i + 1) * 3, width * 0.24 + j * 8 - 1, " %02d ", levels[i][j]);
             }
         }
 
         wrefresh(menuWin);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000 / FRAMES));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     } while((input = getch()) != 10);
+
+    wclear(menuWin);
+    box(menuWin, 0, 0);
+    wrefresh(menuWin);
 
     return levels[selection.y][selection.x];
 }
@@ -347,4 +355,19 @@ int GameManager::PrintCount() {
 
     wrefresh(countWin);
     return 1;
+}
+
+int GameManager::InitTimeWin() {
+    delwin(timeWin);
+    timeWin = newwin(3, BOARD_COLS + 1, BORDER + LINES_HEIGHT + SCORE_HEIGHT + NEXT_HEIGHT + LEVELS_HEIGHT, 51);
+    box(timeWin, 0, 0);
+
+    wrefresh(timeWin);
+    return 1;
+}
+
+int GameManager::PrintTime() {
+    std::chrono::duration<double> duration = std::chrono::high_resolution_clock::now() - time;
+    mvwprintw(timeWin, 1, 2, "%7.2lf", duration.count());
+    wrefresh(timeWin);
 }

@@ -1,5 +1,6 @@
 #include <game.h>
 #include <ncurses.h>
+#include <chrono>
 
 #ifndef GAMEMANAGER_H
 #define GAMEMANAGER_H
@@ -11,7 +12,7 @@ class GameManager {
         int score;
         int startLevel;
         int level;
-        float time;
+        std::chrono::_V2::system_clock::time_point time;
         std::map<blockEnum, int> count;
 
         WINDOW* menuWin;
@@ -21,6 +22,7 @@ class GameManager {
         WINDOW* nextWin;
         WINDOW* levelWin;
         WINDOW* countWin;
+        WINDOW* timeWin;
     public:
         GameManager();
         ~GameManager();
@@ -34,6 +36,9 @@ class GameManager {
         int PrintNext();
         int PrintLevel();
         int PrintCount();
+
+        int InitTimeWin();
+        int PrintTime();
 
         int SelectLevel();
 

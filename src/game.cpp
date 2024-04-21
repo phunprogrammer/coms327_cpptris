@@ -12,13 +12,14 @@ int Game::SpawnBlock() {
 
 int Game::SpawnBlock(blockEnum block) {
     current = { block, 0, { BOARD_SPAWN_X, BOARD_SPAWN_Y } };
+    int out = current.type;
     
     if(!CheckBlock(current))
-        return 0;
+        out = 0;
 
     PlaceBlock(current);
 
-    return current.type;
+    return out;
 }
 
 int Game::PlaceBlock(block_t block) {
@@ -27,7 +28,7 @@ int Game::PlaceBlock(block_t block) {
 
     for(int y = 0; y < BLOCK_WIDTH; y++)
         for(int x = 0; x < BLOCK_LENGTH; x++)
-            if(blockBits[y * BLOCK_LENGTH + x] && !board[start.y + y][start.x + x])
+            if(blockBits[y * BLOCK_LENGTH + x])
                 board[start.y + y][start.x + x] = block.type;
 
     return 1;

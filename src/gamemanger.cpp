@@ -7,6 +7,7 @@
 #define COLOR_ORANGE 8
 #define FRAMES 60.0
 #define MILLIS_PER_FRAME (1000.0 / FRAMES)
+#define DROP_PAUSE 250
 
 #define BORDER 1
 #define LINES_HEIGHT 4
@@ -60,7 +61,7 @@ int GameManager::StartGame(int level) {
     auto currentTime = std::chrono::high_resolution_clock::now();
     double accumulator = 0.0;
 
-    while(1) {
+    while(true) {
         newTime = std::chrono::high_resolution_clock::now();
         double deltaTime = std::chrono::duration_cast<std::chrono::milliseconds>(newTime - currentTime).count();
         currentTime = newTime;
@@ -68,14 +69,20 @@ int GameManager::StartGame(int level) {
 
         if (deltaTime < MILLIS_PER_FRAME) std::this_thread::sleep_for(std::chrono::milliseconds((int)(MILLIS_PER_FRAME - deltaTime)));
 
-        int input = HandleInput(getch());
+        int input = HandleInput(getch(), accumulator);
 
         if(input == 2) break;
         else if(input) flushinp();
 
         if (accumulator >= GetSpeed()) {
-            if(!IncrementLines(game.Drop()) && !IncrementCount((blockEnum)game.SpawnBlock()))
-                break;
+            if(!IncrementLines(game.Drop())) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(DROP_PAUSE));
+                accumulator -= DROP_PAUSE;
+                if(!IncrementCount((blockEnum)game.SpawnBlock())) {
+                    UpdateScreen();
+                    break;
+                }
+            }
 
             UpdateScreen();
 
@@ -114,7 +121,7 @@ int GameManager::PrintBoard() {
     return 1;
 }
 
-int GameManager::HandleInput(int input) {
+int GameManager::HandleInput(int input, double& accumulator) {
     int out;
 
     switch(input) {
@@ -131,8 +138,14 @@ int GameManager::HandleInput(int input) {
             out = game.MoveRight();
             break;
         case KEY_DOWN:
-            if(!IncrementLines(game.Drop()) && !IncrementCount((blockEnum)game.SpawnBlock()))
-                return 2;
+            if(!IncrementLines(game.Drop())) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(DROP_PAUSE));
+                accumulator -= DROP_PAUSE;
+                if(!IncrementCount((blockEnum)game.SpawnBlock())) {
+                    UpdateScreen();
+                    return 2;
+                }
+            }
             break;
         default:
             return 0;
@@ -169,7 +182,7 @@ int GameManager::IncrementLines(int lines) {
     if(!lines) return 0;
     this->lines += lines - 1;
 
-    if(this->lines >= (level * 10 + 10) && level < 29)
+    if(this->lines >= (level * 10 + 10))
         level++;
 
     switch(lines) {
@@ -375,7 +388,7 @@ int GameManager::InitTimeWin() {
 
 int GameManager::PrintTime() {
     std::chrono::duration<double> duration = std::chrono::high_resolution_clock::now() - time;
-    mvwprintw(timeWin, 1, 2, "%7.2lf", duration.count());
+    mvwprintw(timeWin, 1, 2, "%7.0lf", duration.count());
     wrefresh(timeWin);
 
     return 1;

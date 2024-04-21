@@ -51,7 +51,7 @@ class GameManager {
         int PrintLogo();
 
         int UpdateScreen();
-        int HandleInput(int inputs);
+        int HandleInput(int inputs, double& accumulator);
         int GetSpeed();
         int IncrementLines(int lines);
         int IncrementCount(blockEnum block);

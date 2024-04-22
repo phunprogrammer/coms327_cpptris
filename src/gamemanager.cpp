@@ -399,7 +399,6 @@ int GameManager::InitTimeWin() {
     box(timeWin, 0, 0);
 
     wrefresh(timeWin);
-    delwin(timeWin);
     return 1;
 }
 

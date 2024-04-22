@@ -26,7 +26,7 @@ $(TARGET): $(OBJS) $(DEPS)
 
 clean:
 	rm -fr $(OBJ_DIR)
-	rm -f $(TARGET)
+	rm -f ./$(TARGET)
 	rm -f $(ROOT_DIR)/map.png
 	rm -f $(ROOT_DIR)/map.ppm
 

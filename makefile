@@ -22,19 +22,10 @@ $(OBJ_DIR)/%.o:$(SRC_DIR)/%.cpp $(DEPS)
 $(TARGET): $(OBJS) $(DEPS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LINKS)
 
-.PHONY: clean data cleandata
+.PHONY: clean
 
 clean:
 	rm -fr $(OBJ_DIR)
 	rm -f ./$(TARGET)
-	rm -f $(ROOT_DIR)/map.png
-	rm -f $(ROOT_DIR)/map.ppm
-
-cleandata:
-	rm -fr db/$(OBJ_DIR)
-	rm -f  $(ROOT_DIR)/data
-
-data: 
-	make ROOT_DIR=db TARGET_NAME=data
 
 all: $(TARGET)

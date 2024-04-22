@@ -102,7 +102,6 @@ int GameManager::StartGame(int level) {
 }
 
 int GameManager::PrintBoard() {
-    delwin(gameWin);
     gameWin = newwin(BOARD_ROWS - BOARD_SPAWN_Y + 2, BOARD_COLS * 2 + 2, BORDER, 29);
     box(gameWin, 0, 0);
 
@@ -121,7 +120,7 @@ int GameManager::PrintBoard() {
         }
 
     wrefresh(gameWin);
-
+    delwin(gameWin);
     return 1;
 }
 
@@ -236,7 +235,6 @@ int GameManager::UpdateScreen() {
 }
 
 int GameManager::PrintLines() {
-    delwin(lineWin);
     lineWin = newwin(LINES_HEIGHT, BOARD_COLS + 1, BORDER, 51);
     box(lineWin, 0, 0);
 
@@ -244,11 +242,11 @@ int GameManager::PrintLines() {
     mvwprintw(lineWin, 2, 2, "%02d", lines);
 
     wrefresh(lineWin);
+    delwin(lineWin);
     return 1;
 }
 
 int GameManager::PrintScores() {
-    delwin(scoreWin);
     scoreWin = newwin(SCORE_HEIGHT, BOARD_COLS + 1, BORDER + LINES_HEIGHT, 51);
     box(scoreWin, 0, 0);
 
@@ -256,11 +254,11 @@ int GameManager::PrintScores() {
     mvwprintw(scoreWin, 2, 2, "%07d", score);
 
     wrefresh(scoreWin);
+    delwin(scoreWin);
     return 1;
 }
 
 int GameManager::PrintNext() {
-    delwin(nextWin);
     nextWin = newwin(NEXT_HEIGHT, BOARD_COLS + 1, BORDER + LINES_HEIGHT + SCORE_HEIGHT, 51);
     box(nextWin, 0, 0);
 
@@ -282,11 +280,11 @@ int GameManager::PrintNext() {
         }
 
     wrefresh(nextWin);
+    delwin(nextWin);
     return 1;
 }
 
 int GameManager::PrintLevel() {
-    delwin(levelWin);
     levelWin = newwin(LEVELS_HEIGHT, BOARD_COLS + 1, BORDER + LINES_HEIGHT + SCORE_HEIGHT + NEXT_HEIGHT, 51);
     box(levelWin, 0, 0);
 
@@ -294,11 +292,11 @@ int GameManager::PrintLevel() {
     mvwprintw(levelWin, 2, 2, "%02d", level);
 
     wrefresh(levelWin);
+    delwin(levelWin);
     return 1;
 }
 
 int GameManager::SelectLevel() {
-    delwin(menuWin);
     menuWin = newwin(24, 80, 0,0);
 
     std::vector<std::vector<int>> levels;
@@ -358,7 +356,7 @@ int GameManager::SelectLevel() {
     wclear(menuWin);
     box(menuWin, 0, 0);
     wrefresh(menuWin);
-
+    delwin(menuWin);
     return levels[selection.y][selection.x];
 }
 
@@ -369,7 +367,6 @@ int GameManager::IncrementCount(blockEnum block) {
 }
 
 int GameManager::PrintCount() {
-    delwin(countWin);
     countWin = newwin(22, BOARD_COLS + 5, BORDER, 29 - (BOARD_COLS + 5));
     box(countWin, 0, 0);
 
@@ -393,15 +390,16 @@ int GameManager::PrintCount() {
     }
 
     wrefresh(countWin);
+    delwin(countWin);
     return 1;
 }
 
 int GameManager::InitTimeWin() {
-    delwin(timeWin);
     timeWin = newwin(3, BOARD_COLS + 1, BORDER + LINES_HEIGHT + SCORE_HEIGHT + NEXT_HEIGHT + LEVELS_HEIGHT, 51);
     box(timeWin, 0, 0);
 
     wrefresh(timeWin);
+    delwin(timeWin);
     return 1;
 }
 
@@ -447,7 +445,6 @@ int GameManager::PrintLogo() {
 }
 
 int GameManager::PrintLeaderBoard() {
-    delwin(boardWin);
     boardWin = newwin(11, 24, 12, 28);
     box(boardWin, 0, 0);
     mvwprintw(boardWin, 1, 1, "    NAME     SCORE");
@@ -459,6 +456,7 @@ int GameManager::PrintLeaderBoard() {
     }
 
     wrefresh(boardWin);
+    delwin(boardWin);
     return 1;
 }
 

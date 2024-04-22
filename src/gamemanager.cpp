@@ -378,7 +378,6 @@ int GameManager::PrintCount() {
 }
 
 int GameManager::InitTimeWin() {
-    delwin(timeWin);
     timeWin = newwin(3, BOARD_COLS + 1, BORDER + LINES_HEIGHT + SCORE_HEIGHT + NEXT_HEIGHT + LEVELS_HEIGHT, 51);
     box(timeWin, 0, 0);
 

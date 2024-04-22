@@ -429,7 +429,7 @@ int GameManager::PrintLogo() {
 }
 
 int GameManager::PrintLeaderBoard() {
-    delwin(boardWin);
+    if(boardWin != nullptr) delwin(boardWin);
     boardWin = newwin(11, 24, 12, 28);
     box(boardWin, 0, 0);
     mvwprintw(boardWin, 1, 1, "    NAME     SCORE");

@@ -3,6 +3,7 @@
 #include <chrono>
 #include <thread>
 #include <fstream>
+#include <audiomanager.h>
 
 #define COLOR_ORANGE 8
 #define FRAMES 60.0
@@ -60,6 +61,8 @@ int GameManager::StartGame(int level) {
     auto newTime = std::chrono::high_resolution_clock::now();
     auto currentTime = std::chrono::high_resolution_clock::now();
     double accumulator = 0.0;
+    
+    AudioManager::getInstance().playMusic("type_1.wav", true);
 
     while(true) {
         newTime = std::chrono::high_resolution_clock::now();
@@ -76,6 +79,7 @@ int GameManager::StartGame(int level) {
 
         if (accumulator >= GetSpeed()) {
             if(!IncrementLines(game.Drop())) {
+                AudioManager::getInstance().playSound("bump.wav", false);
                 std::this_thread::sleep_for(std::chrono::milliseconds(DROP_PAUSE));
                 accumulator -= DROP_PAUSE;
                 if(!IncrementCount((blockEnum)game.SpawnBlock())) {
@@ -91,6 +95,9 @@ int GameManager::StartGame(int level) {
 
         PrintTime();
     }
+
+    AudioManager::getInstance().stopAllAudio();
+    AudioManager::getInstance().playSound("collision.wav");
 
     PrintEnd();
 
@@ -126,19 +133,20 @@ int GameManager::HandleInput(int input, double& accumulator) {
 
     switch(input) {
         case 'z':
-            out = game.RotateCCW();
+            if((out = game.RotateCCW())) AudioManager::getInstance().playSound("rotate.wav", false);
             break;
         case 'x':
-            out = game.RotateCW();
+            if((out = game.RotateCW())) AudioManager::getInstance().playSound("rotate.wav", false);
             break;
         case KEY_LEFT:
-            out = game.MoveLeft();
+            if((out = game.MoveLeft())) AudioManager::getInstance().playSound("move.wav", false);
             break;
         case KEY_RIGHT:
-            out = game.MoveRight();
+            if((out = game.MoveRight())) AudioManager::getInstance().playSound("move.wav", false);
             break;
         case KEY_DOWN:
             if(!IncrementLines(game.Drop())) {
+                AudioManager::getInstance().playSound("bump.wav", false);
                 std::this_thread::sleep_for(std::chrono::milliseconds(DROP_PAUSE));
                 accumulator -= DROP_PAUSE;
                 if(!IncrementCount((blockEnum)game.SpawnBlock())) {
@@ -146,6 +154,9 @@ int GameManager::HandleInput(int input, double& accumulator) {
                     return 2;
                 }
             }
+            else
+                AudioManager::getInstance().playSound("move.wav", false);
+
             break;
         default:
             return 0;
@@ -182,8 +193,10 @@ int GameManager::IncrementLines(int lines) {
     if(!lines) return 0;
     this->lines += lines - 1;
 
-    if(this->lines >= (level * 10 + 10))
+    if(this->lines >= (level * 10 + 10)) {
         level++;
+        AudioManager::getInstance().playSound("new_level.wav");
+    }
 
     switch(lines) {
         case 2:
@@ -201,6 +214,11 @@ int GameManager::IncrementLines(int lines) {
         default:
             break;
     }
+
+    if(lines == 5)
+        AudioManager::getInstance().playSound("tetris_clear.wav");
+    else if (lines > 1)
+        AudioManager::getInstance().playSound("line_clear.wav");
 
     return lines == 1 ? 1 : 0;
 }

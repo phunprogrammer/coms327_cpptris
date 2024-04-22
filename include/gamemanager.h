@@ -2,6 +2,20 @@
 #include <leaderboard.h>
 #include <ncurses.h>
 #include <chrono>
+#include <string>
+
+#define COLOR_ORANGE 8
+#define FRAMES 60.0
+#define MILLIS_PER_FRAME (1000.0 / FRAMES)
+#define DROP_PAUSE 250
+
+#define BORDER 1
+#define LINES_HEIGHT 4
+#define SCORE_HEIGHT 4
+#define NEXT_HEIGHT 7
+#define LEVELS_HEIGHT 4
+
+const std::string AUDIO_PATH = "./data/audio/"; 
 
 #ifndef GAMEMANAGER_H
 #define GAMEMANAGER_H

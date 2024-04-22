@@ -3,18 +3,7 @@
 #include <chrono>
 #include <thread>
 #include <fstream>
-#include <audiomanager.h>
-
-#define COLOR_ORANGE 8
-#define FRAMES 60.0
-#define MILLIS_PER_FRAME (1000.0 / FRAMES)
-#define DROP_PAUSE 250
-
-#define BORDER 1
-#define LINES_HEIGHT 4
-#define SCORE_HEIGHT 4
-#define NEXT_HEIGHT 7
-#define LEVELS_HEIGHT 4
+#include <audio.h>
 
 GameManager::GameManager() : lines(0), score(0) {
     setlocale(LC_ALL, "");
@@ -26,6 +15,9 @@ GameManager::GameManager() : lines(0), score(0) {
     keypad(stdscr, TRUE);
     start_color();
     InitColors();
+
+    SDL_Init(SDL_INIT_AUDIO);
+    initAudio();
 
     if(can_change_color()) {
         init_color(COLOR_ORANGE, 1000, 500, 0);
@@ -40,6 +32,7 @@ GameManager::GameManager() : lines(0), score(0) {
 
 GameManager::~GameManager() {
     endwin();
+    endAudio();
 }
 
 void GameManager::InitColors() {
@@ -61,8 +54,10 @@ int GameManager::StartGame(int level) {
     auto newTime = std::chrono::high_resolution_clock::now();
     auto currentTime = std::chrono::high_resolution_clock::now();
     double accumulator = 0.0;
-    
-    AudioManager::getInstance().playMusic("type_1.wav", true);
+    int input = 0;
+
+    Audio* music = createAudio(std::string(AUDIO_PATH + "type_1.wav").c_str(), 1, SDL_MIX_MAXVOLUME);
+    playMusicFromMemory(music, SDL_MIX_MAXVOLUME);
 
     while(true) {
         newTime = std::chrono::high_resolution_clock::now();
@@ -72,14 +67,14 @@ int GameManager::StartGame(int level) {
 
         if (deltaTime < MILLIS_PER_FRAME) std::this_thread::sleep_for(std::chrono::milliseconds((int)(MILLIS_PER_FRAME - deltaTime)));
 
-        int input = HandleInput(getch(), accumulator);
+        input = HandleInput(getch(), accumulator);
 
-        if(input == 2) break;
+        if(input == 2 || input == -1) break;
         else if(input) flushinp();
 
         if (accumulator >= GetSpeed()) {
             if(!IncrementLines(game.Drop())) {
-                AudioManager::getInstance().playSound("bump.wav", false);
+                playSound(std::string(AUDIO_PATH + "bump.wav").c_str(), SDL_MIX_MAXVOLUME);
                 std::this_thread::sleep_for(std::chrono::milliseconds(DROP_PAUSE));
                 accumulator -= DROP_PAUSE;
                 if(!IncrementCount((blockEnum)game.SpawnBlock())) {
@@ -96,12 +91,14 @@ int GameManager::StartGame(int level) {
         PrintTime();
     }
 
-    AudioManager::getInstance().stopAllAudio();
-    AudioManager::getInstance().playSound("collision.wav");
+    if (input != -1) {
+        playMusic(std::string(AUDIO_PATH + "silent.wav").c_str(), 0);
+        playSound(std::string(AUDIO_PATH + "collision.wav").c_str(), SDL_MIX_MAXVOLUME);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        PrintEnd();
+    }
 
-    PrintEnd();
-
-    return 1;
+    return input;
 }
 
 int GameManager::PrintBoard() {
@@ -133,20 +130,20 @@ int GameManager::HandleInput(int input, double& accumulator) {
 
     switch(input) {
         case 'z':
-            if((out = game.RotateCCW())) AudioManager::getInstance().playSound("rotate.wav", false);
+            if((out = game.RotateCCW())) playSound(std::string(AUDIO_PATH + "rotate.wav").c_str(), SDL_MIX_MAXVOLUME);
             break;
         case 'x':
-            if((out = game.RotateCW())) AudioManager::getInstance().playSound("rotate.wav", false);
+            if((out = game.RotateCW())) playSound(std::string(AUDIO_PATH + "rotate.wav").c_str(), SDL_MIX_MAXVOLUME);
             break;
         case KEY_LEFT:
-            if((out = game.MoveLeft())) AudioManager::getInstance().playSound("move.wav", false);
+            if((out = game.MoveLeft())) playSound(std::string(AUDIO_PATH + "move.wav").c_str(), SDL_MIX_MAXVOLUME);
             break;
         case KEY_RIGHT:
-            if((out = game.MoveRight())) AudioManager::getInstance().playSound("move.wav", false);
+            if((out = game.MoveRight())) playSound(std::string(AUDIO_PATH + "move.wav").c_str(), SDL_MIX_MAXVOLUME);
             break;
         case KEY_DOWN:
             if(!IncrementLines(game.Drop())) {
-                AudioManager::getInstance().playSound("bump.wav", false);
+                playSound(std::string(AUDIO_PATH + "bump.wav").c_str(), SDL_MIX_MAXVOLUME);
                 std::this_thread::sleep_for(std::chrono::milliseconds(DROP_PAUSE));
                 accumulator -= DROP_PAUSE;
                 if(!IncrementCount((blockEnum)game.SpawnBlock())) {
@@ -154,9 +151,11 @@ int GameManager::HandleInput(int input, double& accumulator) {
                     return 2;
                 }
             }
-            else
-                AudioManager::getInstance().playSound("move.wav", false);
+            else score++;
 
+            break;
+        case KEY_BACKSPACE:
+            return -1;
             break;
         default:
             return 0;
@@ -195,7 +194,7 @@ int GameManager::IncrementLines(int lines) {
 
     if(this->lines >= (level * 10 + 10)) {
         level++;
-        AudioManager::getInstance().playSound("new_level.wav");
+        playSound(std::string(AUDIO_PATH + "new_level.wav").c_str(), SDL_MIX_MAXVOLUME);
     }
 
     switch(lines) {
@@ -216,9 +215,9 @@ int GameManager::IncrementLines(int lines) {
     }
 
     if(lines == 5)
-        AudioManager::getInstance().playSound("tetris_clear.wav");
+        playSound(std::string(AUDIO_PATH + "tetris_clear.wav").c_str(), SDL_MIX_MAXVOLUME * 0.75);
     else if (lines > 1)
-        AudioManager::getInstance().playSound("line_clear.wav");
+        playSound(std::string(AUDIO_PATH + "line_clear.wav").c_str(), SDL_MIX_MAXVOLUME);
 
     return lines == 1 ? 1 : 0;
 }
@@ -479,6 +478,7 @@ int GameManager::PrintEnd() {
 
     std::string name;
     int input;
+    playSound(std::string(AUDIO_PATH + "win.wav").c_str(), SDL_MIX_MAXVOLUME);
     mvwprintw(endWin, 2, 1, "YOU'RE ON THE BOARD!");
     wrefresh(endWin);
     while(getch() != 10);

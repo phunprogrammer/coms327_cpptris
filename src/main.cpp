@@ -14,7 +14,10 @@ int main() {
     GameManager manager = GameManager();
     int level;
     
-    while((level = manager.SelectLevel()) != -1) manager.StartGame(level);
+    while((level = manager.SelectLevel()) != -1) {
+        if(manager.StartGame(level) == -1)
+            break;
+    }
 
     return 0;
 }

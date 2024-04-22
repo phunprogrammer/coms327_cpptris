@@ -33,6 +33,7 @@ class GameManager {
         WINDOW* menuWin;
         WINDOW* boardWin;
         WINDOW* endWin;
+        WINDOW* pauseWin;
 
         WINDOW* gameWin;
         WINDOW* lineWin;
@@ -56,6 +57,7 @@ class GameManager {
         int PrintCount();
         int PrintLeaderBoard();
         int PrintEnd();
+        int PrintPause();
 
         int InitTimeWin();
         int PrintTime();

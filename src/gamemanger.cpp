@@ -156,6 +156,8 @@ int GameManager::HandleInput(int input, double& accumulator) {
             break;
         case KEY_BACKSPACE:
             return -1;
+        case 10:
+            accumulator -= PrintPause();
             break;
         default:
             return 0;
@@ -215,7 +217,7 @@ int GameManager::IncrementLines(int lines) {
     }
 
     if(lines == 5)
-        playSound(std::string(AUDIO_PATH + "tetris_clear.wav").c_str(), SDL_MIX_MAXVOLUME * 0.75);
+        playSound(std::string(AUDIO_PATH + "tetris_clear.wav").c_str(), SDL_MIX_MAXVOLUME / 2);
     else if (lines > 1)
         playSound(std::string(AUDIO_PATH + "line_clear.wav").c_str(), SDL_MIX_MAXVOLUME);
 
@@ -521,4 +523,21 @@ int GameManager::PrintEnd() {
     noecho();
     curs_set(0);
     return 1;
+}
+
+int GameManager::PrintPause() {
+    auto current = std::chrono::high_resolution_clock::now();
+    int width = 22;
+    int height = 5;
+
+    nodelay(stdscr, FALSE);
+    pauseWin = newwin(height, width, 12 - (height / 2), 40 - (width / 2));
+    box(pauseWin, 0, 0);
+
+    mvwprintw(pauseWin, 2, 9, "PAUSE");
+    wrefresh(pauseWin);
+    while(getch() != 10);
+    nodelay(stdscr, TRUE);
+
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - current).count();
 }
